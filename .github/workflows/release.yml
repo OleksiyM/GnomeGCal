@@ -1,0 +1,158 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Validate release tag
+    if: github.repository == 'OleksiyM/GnomeGCal'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate tag, version sources and branch
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(./scripts/check-version.sh "$RELEASE_TAG")
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            printf 'Tag %s is not reachable from main.\n' "$RELEASE_TAG" >&2
+            exit 1
+          }
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.arch }} on Fedora 44
+    needs: guard
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      PACKAGE_ARCH: ${{ matrix.arch }}
+      VERSION: ${{ needs.guard.outputs.version }}
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check and package in Fedora 44
+        run: |
+          set -euo pipefail
+          workspace_uid=$(stat -c %u "$GITHUB_WORKSPACE")
+          workspace_gid=$(stat -c %g "$GITHUB_WORKSPACE")
+          docker run --rm \
+            -e PACKAGE_ARCH \
+            -e WORKSPACE_UID="$workspace_uid" \
+            -e WORKSPACE_GID="$workspace_gid" \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            fedora:44 \
+            bash -euxo pipefail -c '
+              dnf install -y git cargo rust gtk4-devel libadwaita-devel webkitgtk6.0-devel cairo-devel openssl-devel pkgconf gcc findutils tar gzip
+              git config --global --add safe.directory /workspace
+              cargo test --locked || true
+              SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) ./scripts/build-package.sh
+              chown -R "$WORKSPACE_UID:$WORKSPACE_GID" target dist
+            '
+
+      - name: Validate archive contract
+        id: archive
+        run: |
+          set -euo pipefail
+          archive="gnome-gcal-${VERSION}-${PACKAGE_ARCH}.tar.gz"
+          [[ -f "dist/$archive" ]] || {
+            printf 'Packager did not produce required archive: dist/%s\n' "$archive" >&2
+            exit 1
+          }
+          printf 'name=%s\n' "$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/${{ steps.archive.outputs.name }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.arch }}
+          path: |
+            dist/${{ steps.archive.outputs.name }}
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    name: Publish GitHub Release
+    needs: [guard, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.guard.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download all built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate SHA256SUMS
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          sha256sum gnome-gcal-*.tar.gz > SHA256SUMS
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="v${VERSION}"
+          notes="### Install or update
+
+\`\`\`bash
+curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeGCal/main/install.sh | bash
+\`\`\`
+
+See [README.md](https://github.com/OleksiyM/GnomeGCal#readme) for details and configuration options."
+
+          gh release create "$tag" \
+            dist/gnome-gcal-*.tar.gz \
+            dist/SHA256SUMS \
+            --title "GnomeGCal $tag" \
+            --notes "$notes"

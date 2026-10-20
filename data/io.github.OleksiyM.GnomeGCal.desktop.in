@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=GnomeGCal
+Comment=Lightweight Google Calendar, Tasks & Keep desktop client for GNOME
+Exec=gnome-gcal
+Icon=io.github.OleksiyM.GnomeGCal
+Terminal=false
+Type=Application
+Categories=Office;Calendar;GTK;
+StartupWMClass=io.github.OleksiyM.GnomeGCal
+Keywords=calendar;google;tasks;keep;gcal;
