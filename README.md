@@ -17,10 +17,11 @@ Built with **Rust**, **GTK 4**, **Libadwaita**, and **WebKitGTK 6**.
 
 ---
 
-## Why Not Just a Browser PWA?
+## Why Not Just Use a Google Calendar PWA?
 
-*“Can’t I just click 'Install as PWA' in Chrome and call it a day?”*  
-You could. But here is what actually happens in reality:
+You could. GnomeGCal exists because we wanted the full Google Calendar experience to behave like a real GNOME desktop application — not just a browser tab with its own window.
+
+Here is what that difference actually means in practice:
 
 1. **Memory (500–800 MB vs 0 MB)**: A browser PWA spawns a fleet of Chromium processes permanently hoarding RAM. When minimized to the tray, GnomeGCal's Deep Sleep physically terminates the idle WebProcess down to **0 MB**.
 2. **Dynamic Tray Widget**: PWAs cannot live as native tray indicators. GnomeGCal renders today’s date dynamically on Cairo and flips it automatically at midnight.
