@@ -137,22 +137,26 @@ jobs:
           set -euo pipefail
           sha256sum gnome-gcal-*.tar.gz > SHA256SUMS
 
+      - name: Generate release notes
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          {
+            printf '### Install or update\n\n```bash\n'
+            printf 'curl -fsSL https://raw.githubusercontent.com/%s/main/install.sh | bash\n' "$GH_REPO"
+            printf '```\n\n'
+            printf 'See [README.md](https://github.com/%s#readme) for details and configuration options.\n' "$GH_REPO"
+          } > release-notes.md
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           tag="v${VERSION}"
-          notes="### Install or update
-
-\`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeGCal/main/install.sh | bash
-\`\`\`
-
-See [README.md](https://github.com/OleksiyM/GnomeGCal#readme) for details and configuration options."
-
           gh release create "$tag" \
             dist/gnome-gcal-*.tar.gz \
             dist/SHA256SUMS \
             --title "GnomeGCal $tag" \
-            --notes "$notes"
+            --notes-file release-notes.md
