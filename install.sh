@@ -82,9 +82,8 @@ gcal_install() (
     fi
     if [[ $verify == yes ]]; then
         printf '\n🛡️  Verifying release provenance…\n'
-        "${download[@]}" --output "$temporary/$archive.sigstore.json" "$url/$archive.sigstore.json"
         gh attestation verify "$temporary/$archive" \
-            --bundle "$temporary/$archive.sigstore.json" --repo "$repo" \
+            --repo "$repo" \
             --signer-workflow "$repo/.github/workflows/release.yml" --source-ref "refs/tags/$tag" \
             --cert-oidc-issuer https://token.actions.githubusercontent.com \
             --deny-self-hosted-runners --predicate-type https://slsa.dev/provenance/v1
