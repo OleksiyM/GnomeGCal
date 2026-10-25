@@ -1,6 +1,6 @@
 # GnomeGCal
 
-A lightweight, dedicated desktop client for **Google Calendar**, **Google Tasks**, and **Google Keep** on **GNOME** (Wayland and X11).
+A lightweight, dedicated desktop hub for **Google Calendar**, **Google Tasks**, **Google Keep**, and **𝕏 (Twitter)** on **GNOME** (Wayland and X11).
 
 Built with **Rust**, **GTK 4**, **Libadwaita**, and **WebKitGTK 6**.
 
@@ -8,12 +8,12 @@ Built with **Rust**, **GTK 4**, **Libadwaita**, and **WebKitGTK 6**.
 
 ## Highlights
 
-* **All-in-one Google Workspace widget**: Starts directly in compact **Agenda (Schedule)** view, but provides full access to Day, Week, Month, Year views, full **Google Tasks** boards, and the slide-out **Google Keep** side panel.
-* **Minimalist & Native**: Google's bloated headers and search bars are hidden via custom CSS. Integrates seamlessly into GNOME's Adwaita dark theme.
-* **Dynamic System Tray**: Renders today's date dynamically on the modern Google Calendar icon using Cairo. Automatically flips to the new day at midnight.
-* **Real Zero-RAM Deep Sleep**: Solves WebKit's notorious memory greed. When idle in the system tray, it completely terminates the rendering process, freeing memory down to ~30 MB (0 MB for WebProcess).
-* **Smart Link Handling**: Google Calendar & authentication pages stay inside the app; external links (Google Drive, Gemini, Docs) automatically open in your default browser.
-* **Strictly Private**: Direct HTTPS connection to Google. Login session and cookies are stored purely on your local machine (`~/.local/share/gnome-gcal/data/cookies.sqlite`). No analytics, telemetry, or third-party servers.
+* **All-in-one Workspace & 𝕏 Hub**: Starts directly in compact **Agenda (Schedule)** view with full access to Day/Week/Month/Year views, **Google Tasks**, and **Google Keep**, plus a dedicated **𝕏 (`x.com/home`)** tab (`Alt+1` / `Alt+2`) that automatically opens on your **Following** timeline.
+* **Lazy-Loaded & Minimalist**: The `𝕏` tab is lazy-loaded (0 MB RAM overhead until you actually switch to it). Google's bloated headers and search bars are hidden via custom CSS, and both tabs sync live with GNOME's Dark/Light theme.
+* **Dynamic System Tray & Wayland-Native Activation**: Renders today's date dynamically on the Calendar icon or switches to a crisp vector `𝕏` badge in the top bar depending on your active tab. Supports XDG Activation tokens (`ProvideXdgActivationToken`) for instant, toast-free window restoration on GNOME Wayland.
+* **Real Zero-RAM Deep Sleep**: Solves WebKit's notorious memory greed. When idle in the system tray, it physically terminates both WebKit rendering processes, freeing memory down to **0 MB** for WebProcess.
+* **Smart Link Handling**: Calendar, `𝕏`, and authentication pages stay inside the app; external links automatically open in your default desktop browser.
+* **Strictly Private**: Direct HTTPS connection to Google and 𝕏. Login sessions and cookies are stored purely on your local machine (`~/.local/share/gnome-gcal/data/cookies.sqlite`). No analytics, telemetry, or third-party servers.
 
 ---
 
@@ -57,10 +57,13 @@ sleep_timeout_minutes = 5
 memory_limit_mb = 256
 
 [window]
-width = 900
+width = 1020
 height = 820
-zoom_level = 0.90
-theme = "system"  # "system" (follows GNOME Dark/Light toggle), "dark", or "light"
+zoom_level = 1.0
+theme = "system"          # "system" (follows GNOME Dark/Light toggle), "dark", or "light"
+enable_calendar = true    # Enable/disable Calendar tab (disables button & tray item when false)
+enable_x = true           # Enable/disable 𝕏 tab
+x_auto_following = true   # Automatically switch 𝕏 home timeline to "Following"
 ```
 
 ---

@@ -1,8 +1,8 @@
 [package]
 name = "gnome-gcal"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2024"
-description = "Lightweight Google Calendar, Tasks & Keep desktop client for GNOME"
+description = "Lightweight Google Calendar, Tasks, Keep & X desktop hub for GNOME"
 license = "MIT"
 repository = "https://github.com/OleksiyM/GnomeGCal"
 default-run = "gnome-gcal"
@@ -13,7 +13,7 @@ adw = { package = "libadwaita", version = "0.9", features = ["v1_5"] }
 glib = "0.22"
 cairo = { package = "cairo-rs", version = "0.22" }
 webkit6 = "0.6"
-ksni = { version = "0.3", features = ["blocking"] }
+ksni = { version = "0.3", path = "vendor/ksni", features = ["blocking"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "1.1"
