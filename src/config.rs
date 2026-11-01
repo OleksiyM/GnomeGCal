@@ -28,6 +28,12 @@ pub struct WindowConfig {
     pub enable_x: bool,
     #[serde(default = "default_true")]
     pub x_auto_following: bool,
+    #[serde(default = "default_user_agent")]
+    pub user_agent: String,
+}
+
+fn default_user_agent() -> String {
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36".to_string()
 }
 
 fn default_theme() -> String {
@@ -54,6 +60,7 @@ impl Default for Config {
                 enable_calendar: true,
                 enable_x: true,
                 x_auto_following: true,
+                user_agent: default_user_agent(),
             },
         }
     }
@@ -118,6 +125,9 @@ enable_x = true
 
 # Automatically switch X (Twitter) home timeline to the "Following" tab
 x_auto_following = true
+
+# Browser User-Agent header for WebKit (defaults to modern Chrome for Linux)
+user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
 "#;
 
 impl Config {

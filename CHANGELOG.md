@@ -5,6 +5,11 @@ All notable changes to **GnomeGCal** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-11-01
+
+### Added
+- **Configurable & Modern User-Agent**: Added `user_agent` option under `[window]` in `config.toml`, defaulting to modern Linux Chrome 156 (`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36`). Allows seamless customization without recompiling and prevents outdated browser warnings from Google and 𝕏.
+
 ## [1.1.1] - 2026-11-01
 
 ### Fixed

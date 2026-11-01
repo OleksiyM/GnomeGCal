@@ -339,13 +339,19 @@ fn build_ui(app: &Application) {
         .build();
 
     // 4. Engine settings
+    let user_agent = if cfg.window.user_agent.trim().is_empty() {
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36".to_string()
+    } else {
+        cfg.window.user_agent.clone()
+    };
+
     let settings = Settings::builder()
         .enable_developer_extras(cfg!(debug_assertions))
         .enable_javascript(true)
         .enable_back_forward_navigation_gestures(false)
         .enable_media_stream(false)
         .enable_webrtc(false)
-        .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+        .user_agent(&user_agent)
         .build();
 
     // Helper to set WebView background color so there's no white flash when loading in dark mode
