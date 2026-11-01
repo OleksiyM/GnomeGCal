@@ -922,6 +922,15 @@ impl ksni::Tray for GCalTray {
         }
     }
 
+    fn watcher_online(&self) {
+        eprintln!("[GnomeGCal] StatusNotifierWatcher is back online. Restoring tray icon...");
+    }
+
+    fn watcher_offline(&self, reason: ksni::OfflineReason) -> bool {
+        eprintln!("[GnomeGCal] StatusNotifierWatcher offline ({reason:?}), waiting to reconnect...");
+        true
+    }
+
     fn activate(&mut self, _x: i32, _y: i32) {
         toggle_window();
     }

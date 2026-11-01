@@ -5,6 +5,14 @@ All notable changes to **GnomeGCal** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-11-01
+
+### Fixed
+- **System Tray Reconnection**: Implemented automatic retry loop in `ksni` StatusNotifierItem registration when GNOME Shell or `appindicatorsupport` reloads (e.g. during screen lock, system sleep, or extension restarts). Added `watcher_online` / `watcher_offline` lifecycle hooks in `GCalTray` to ensure the tray icon is never dropped or silently terminated.
+
+### Changed
+- **Automated Release Notes**: Integrated commit-based "What’s New" release notes generator and compare diff links into `.github/workflows/release.yml`.
+
 ## [1.1.0] - 2026-10-25
 
 ### Added

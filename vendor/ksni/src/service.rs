@@ -142,16 +142,27 @@ pub(crate) async fn run<T: Tray>(
                                 service.tray.watcher_online();
                             }
 
-                            if let Err(e) = snw_object.register_status_notifier_item(&name).await {
-                                let fdo_err: zbus::fdo::Error = e.into();
-                                let reason = if let zbus::fdo::Error::ZBus(e) = fdo_err {
-                                    OfflineReason::Error(Error::Dbus(e))
-                                } else {
-                                    OfflineReason::Error(Error::Watcher(fdo_err))
-                                };
-                                if !service.tray.watcher_offline(reason) {
-                                    let _ = conn.close().await;
-                                    break;
+                            let mut retries = 0;
+                            loop {
+                                match snw_object.register_status_notifier_item(&name).await {
+                                    Ok(_) => break,
+                                    Err(e) => {
+                                        retries += 1;
+                                        if retries >= 15 {
+                                            let fdo_err: zbus::fdo::Error = e.into();
+                                            let reason = if let zbus::fdo::Error::ZBus(e) = fdo_err {
+                                                OfflineReason::Error(Error::Dbus(e))
+                                            } else {
+                                                OfflineReason::Error(Error::Watcher(fdo_err))
+                                            };
+                                            if !service.tray.watcher_offline(reason) {
+                                                let _ = conn.close().await;
+                                                return;
+                                            }
+                                            break;
+                                        }
+                                        compat::sleep(std::time::Duration::from_millis(500)).await;
+                                    }
                                 }
                             }
                             // No need to check is_status_notifier_host_registered here:

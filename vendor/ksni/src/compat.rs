@@ -40,6 +40,8 @@ mod tokio {
     pub mod oneshot {
         pub use tokio::sync::oneshot::{channel, Receiver, Sender};
     }
+
+    pub use tokio::time::sleep;
 }
 #[cfg(feature = "tokio")]
 pub use tokio::*;
@@ -184,6 +186,11 @@ mod async_io {
         //        (tx, rx)
         //    }
         //    pub type Receiver<T> = impl Future<Output = Result<T, async_channel::RecvError>>;
+    }
+
+    pub use async_io::Timer;
+    pub async fn sleep(dur: std::time::Duration) {
+        Timer::after(dur).await;
     }
 
     #[cfg(test)]
