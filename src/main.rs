@@ -769,6 +769,7 @@ fn show_about_window(parent: Option<&ApplicationWindow>) {
 
     let btn_gh = LinkButton::with_label("https://github.com/OleksiyM/GnomeGCal", "GitHub");
     let btn_rel = LinkButton::with_label(crate::update::RELEASES_URL, "Releases");
+    let btn_x = LinkButton::with_label("https://x.com/OleksiyML", "X");
 
     let sep_label = || {
         Label::builder()
@@ -780,6 +781,8 @@ fn show_about_window(parent: Option<&ApplicationWindow>) {
     links_box.append(&btn_gh);
     links_box.append(&sep_label());
     links_box.append(&btn_rel);
+    links_box.append(&sep_label());
+    links_box.append(&btn_x);
 
     content_box.append(&links_box);
 

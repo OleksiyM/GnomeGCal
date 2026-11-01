@@ -1,6 +1,6 @@
 [package]
 name = "gnome-gcal"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2024"
 description = "Lightweight Google Calendar, Tasks & Keep desktop hub for GNOME"
 license = "MIT"
