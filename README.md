@@ -1,6 +1,6 @@
 # GnomeGCal
 
-A lightweight, dedicated desktop hub for **Google Calendar**, **Google Tasks**, **Google Keep**, and **𝕏 (Twitter)** on **GNOME** (Wayland and X11).
+A lightweight, dedicated desktop hub for **Google Calendar**, **Google Tasks**, and **Google Keep** on **GNOME** (Wayland and X11).
 
 Built with **Rust**, **GTK 4**, **Libadwaita**, and **WebKitGTK 6**.
 
@@ -8,12 +8,13 @@ Built with **Rust**, **GTK 4**, **Libadwaita**, and **WebKitGTK 6**.
 
 ## Highlights
 
-* **All-in-one Workspace & 𝕏 Hub**: Starts directly in compact **Agenda (Schedule)** view with full access to Day/Week/Month/Year views, **Google Tasks**, and **Google Keep**, plus a dedicated **𝕏 (`x.com/home`)** tab (`Alt+1` / `Alt+2`) that automatically opens on your **Following** timeline.
-* **Lazy-Loaded & Minimalist**: The `𝕏` tab is lazy-loaded (0 MB RAM overhead until you actually switch to it). Google's bloated headers and search bars are hidden via custom CSS, and both tabs sync live with GNOME's Dark/Light theme.
-* **Dynamic System Tray & Wayland-Native Activation**: Renders today's date dynamically on the Calendar icon or switches to a crisp vector `𝕏` badge in the top bar depending on your active tab. Supports XDG Activation tokens (`ProvideXdgActivationToken`) for instant, toast-free window restoration on GNOME Wayland.
-* **Real Zero-RAM Deep Sleep**: Solves WebKit's notorious memory greed. When idle in the system tray, it physically terminates both WebKit rendering processes, freeing memory down to **0 MB** for WebProcess.
-* **Smart Link Handling**: Calendar, `𝕏`, and authentication pages stay inside the app; external links automatically open in your default desktop browser.
-* **Strictly Private**: Direct HTTPS connection to Google and 𝕏. Login sessions and cookies are stored purely on your local machine (`~/.local/share/gnome-gcal/data/cookies.sqlite`). No analytics, telemetry, or third-party servers.
+* **All-in-one Google Workspace Hub**: Starts directly in compact **Agenda (Schedule)** view with full access to Day/Week/Month/Year views, **Google Tasks**, and **Google Keep** companion side panel.
+* **Minimalist & Distraction-Free**: Google's bloated headers and search bars are hidden via custom CSS, keeping navigation compact and clean. Syncs live with GNOME's Dark/Light theme.
+* **Dynamic System Tray & Wayland-Native Activation**: Renders today's date dynamically on Cairo and updates automatically at midnight. Supports XDG Activation tokens (`ProvideXdgActivationToken`) for instant, toast-free window restoration on GNOME Wayland.
+* **Real Zero-RAM Deep Sleep**: Solves WebKit's memory greed. When idle in the system tray, it physically terminates the WebKit rendering process, freeing memory down to **0 MB** for WebProcess.
+* **Smart Link Handling**: Calendar and authentication pages stay inside the app; external links (Google Drive, Gemini, docs, web) automatically open in your default desktop browser.
+* **Configurable User-Agent**: User-Agent can be customized in `config.toml` (defaults to modern Chrome for Linux) to ensure seamless compatibility with Google services without outdated browser warnings.
+* **Strictly Private**: Direct HTTPS connection to Google. Login sessions and cookies are stored purely on your local machine (`~/.local/share/gnome-gcal/data/cookies.sqlite`). No analytics, telemetry, or third-party servers.
 
 ---
 
@@ -27,7 +28,7 @@ Here is what that difference actually means in practice:
 2. **Dynamic Tray Widget**: PWAs cannot live as native tray indicators. GnomeGCal renders today’s date dynamically on Cairo and flips it automatically at midnight.
 3. **UI Surgery**: PWAs display Google’s huge search bar and branding headers that eat 30% of compact windows. GnomeGCal cuts the clutter via surgical CSS.
 4. **Smart Links**: Click a Google Drive or external link in a PWA, and it hijacks your compact calendar window. GnomeGCal loads Calendar/Auth locally and cleanly launches external links in your default desktop browser.
-5. **Zero Browser Dependency**: A lightweight 2.4 MB Rust binary with an isolated SQLite session. Closing, crashing, or wiping your main browser never interrupts your calendar.
+5. **Zero Browser Dependency**: A lightweight isolated Rust binary with its own SQLite session. Closing, crashing, or wiping your main browser never interrupts your calendar.
 
 ---
 
@@ -61,9 +62,7 @@ width = 1020
 height = 820
 zoom_level = 1.0
 theme = "system"          # "system" (follows GNOME Dark/Light toggle), "dark", or "light"
-enable_calendar = true    # Enable/disable Calendar tab (disables button & tray item when false)
-enable_x = true           # Enable/disable 𝕏 tab
-x_auto_following = true   # Automatically switch 𝕏 home timeline to "Following"
+user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
 ```
 
 ---

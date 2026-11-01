@@ -5,6 +5,14 @@ All notable changes to **GnomeGCal** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-11-01
+
+### Changed
+- **Purity & Focus**: Refactored **GnomeGCal** back to its clean, solid foundation as a dedicated **Google Workspace Hub** (Google Calendar Agenda, Google Tasks, and Google Keep side panel).
+- **Removed 𝕏 (Twitter) Integration**: Completely purged the secondary 𝕏 feed tab, complex tab-switching mechanisms, and media-decoding overhead, permanently eliminating WebKit GStreamer memory bloat and CPU overheating spikes on infinite media feeds.
+- **Single Streamlined Window**: Header bar is now clean and distraction-free with a native Refresh button and direct About dialog.
+- **Purged 𝕏 Storage & Cookies**: Retained only Google session cookies and local data; purged all residual third-party tracker cookies.
+
 ## [1.1.3] - 2026-11-01
 
 ### Fixed

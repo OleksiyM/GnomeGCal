@@ -22,12 +22,6 @@ pub struct WindowConfig {
     pub zoom_level: f64,
     #[serde(default = "default_theme")]
     pub theme: String,
-    #[serde(default = "default_true")]
-    pub enable_calendar: bool,
-    #[serde(default = "default_true")]
-    pub enable_x: bool,
-    #[serde(default = "default_true")]
-    pub x_auto_following: bool,
     #[serde(default = "default_user_agent")]
     pub user_agent: String,
 }
@@ -38,10 +32,6 @@ fn default_user_agent() -> String {
 
 fn default_theme() -> String {
     "system".to_string()
-}
-
-fn default_true() -> bool {
-    true
 }
 
 impl Default for Config {
@@ -57,9 +47,6 @@ impl Default for Config {
                 height: 820,
                 zoom_level: 1.0,
                 theme: default_theme(),
-                enable_calendar: true,
-                enable_x: true,
-                x_auto_following: true,
                 user_agent: default_user_agent(),
             },
         }
@@ -119,13 +106,6 @@ zoom_level = 1.0
 # Note: In Google Calendar Settings (Gear icon -> Appearance), select "Device default".
 theme = "system"
 
-# Enable or disable tabs (if both are set to false, Calendar stays enabled)
-enable_calendar = true
-enable_x = true
-
-# Automatically switch X (Twitter) home timeline to the "Following" tab
-x_auto_following = true
-
 # Browser User-Agent header for WebKit (defaults to modern Chrome for Linux)
 user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
 "#;
@@ -150,7 +130,7 @@ impl Config {
             }
         }
 
-        let mut cfg = match fs::read_to_string(&config_path) {
+        match fs::read_to_string(&config_path) {
             Ok(content) => match toml::from_str::<Config>(&content) {
                 Ok(cfg) => cfg,
                 Err(err) => {
@@ -159,15 +139,6 @@ impl Config {
                 }
             },
             Err(_) => Self::default(),
-        };
-
-        if !cfg.window.enable_calendar && !cfg.window.enable_x {
-            eprintln!(
-                "[GnomeGCal] Both enable_calendar and enable_x are false in config.toml! Falling back to enable_calendar = true."
-            );
-            cfg.window.enable_calendar = true;
         }
-
-        cfg
     }
 }
