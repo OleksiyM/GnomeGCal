@@ -5,6 +5,15 @@ All notable changes to **GnomeGCal** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-11-01
+
+### Fixed
+- **𝕏 Feed CPU & Memory Leak on Video Autoplay**:
+  - Enforced `media_playback_requires_user_gesture(true)` in WebKit Settings to prevent 𝕏 feed videos and GIFs from auto-playing simultaneously during scroll (eliminating 1.5+ GB memory bloat and loud laptop fan spikes).
+  - Disabled background `webaudio` engine allocation on post streams.
+  - Enforced `HardwareAccelerationPolicy::Always` to eliminate software video decoding fallback.
+  - Injected CSS `content-visibility: auto` on feed articles and cell containers to aggressively recycle rendering and decoding buffers for off-screen items.
+
 ## [1.1.2] - 2026-11-01
 
 ### Added

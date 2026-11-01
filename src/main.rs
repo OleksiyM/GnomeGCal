@@ -15,9 +15,9 @@ use std::rc::Rc;
 use std::sync::OnceLock;
 use webkit6::prelude::*;
 use webkit6::{
-    MemoryPressureSettings, NetworkSession, Settings, UserContentInjectedFrames,
-    UserContentManager, UserScript, UserScriptInjectionTime, UserStyleLevel, UserStyleSheet,
-    WebContext, WebView,
+    HardwareAccelerationPolicy, MemoryPressureSettings, NetworkSession, Settings,
+    UserContentInjectedFrames, UserContentManager, UserScript, UserScriptInjectionTime,
+    UserStyleLevel, UserStyleSheet, WebContext, WebView,
 };
 
 const APP_ID: &str = "io.github.OleksiyM.GnomeGCal";
@@ -183,6 +183,12 @@ fn update_x_theme(content_manager: &UserContentManager, is_dark: bool, auto_foll
         ::-webkit-scrollbar-thumb {{
             background: {thumb_color};
             border-radius: 3px;
+        }}
+
+        /* Performance: prevent off-screen feed elements from keeping active GPU/CPU buffers */
+        article, [data-testid="cellInnerDiv"] {{
+            content-visibility: auto;
+            contain-intrinsic-size: auto 150px;
         }}
     "#
     );
@@ -351,6 +357,9 @@ fn build_ui(app: &Application) {
         .enable_back_forward_navigation_gestures(false)
         .enable_media_stream(false)
         .enable_webrtc(false)
+        .enable_webaudio(false)
+        .media_playback_requires_user_gesture(true)
+        .hardware_acceleration_policy(HardwareAccelerationPolicy::Always)
         .user_agent(&user_agent)
         .build();
 
