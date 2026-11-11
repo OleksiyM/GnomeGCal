@@ -396,7 +396,7 @@ dependencies = [
 
 [[package]]
 name = "gnome-gcal"
-version = "2.0.1"
+version = "2.0.2"
 dependencies = [
  "cairo-rs",
  "glib",

@@ -58,7 +58,7 @@ sleep_timeout_minutes = 5
 memory_limit_mb = 256
 
 [window]
-width = 1020
+width = 900
 height = 820
 zoom_level = 1.0
 theme = "system"          # "system" (follows GNOME Dark/Light toggle), "dark", or "light"

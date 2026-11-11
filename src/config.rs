@@ -43,7 +43,7 @@ impl Default for Config {
                 memory_limit_mb: 256,
             },
             window: WindowConfig {
-                width: 1020,
+                width: 900,
                 height: 820,
                 zoom_level: 1.0,
                 theme: default_theme(),
@@ -96,7 +96,7 @@ memory_limit_mb = 256
 
 [window]
 # Default window size in pixels
-width = 1020
+width = 900
 height = 820
 
 # UI scaling inside WebKit (1.0 = 100% native size)
