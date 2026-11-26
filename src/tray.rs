@@ -120,17 +120,14 @@ const MENU_XML: &str = r#"
 const MENU_ID_MINIMIZE: i32 = 1;
 const MENU_ID_SEP_TOP: i32 = 2;
 const MENU_ID_OPEN: i32 = 3;
-const MENU_ID_SEP_MID: i32 = 4;
-const MENU_ID_ABOUT: i32 = 5;
-const MENU_ID_SEP_BOT: i32 = 6;
-const MENU_ID_QUIT: i32 = 7;
+const MENU_ID_SEP_BOT: i32 = 4;
+const MENU_ID_QUIT: i32 = 5;
 
 #[derive(Clone)]
 pub struct TrayCallbacks {
     pub on_toggle: Rc<dyn Fn()>,
     pub on_show: Rc<dyn Fn()>,
     pub on_hide: Rc<dyn Fn()>,
-    pub on_about: Rc<dyn Fn()>,
     pub on_quit: Rc<dyn Fn()>,
     pub on_activation_token: Rc<dyn Fn(String)>,
 }
@@ -563,7 +560,6 @@ fn dispatch_menu_click(id: i32, callbacks: &TrayCallbacks) {
     match id {
         MENU_ID_MINIMIZE => (callbacks.on_hide)(),
         MENU_ID_OPEN => (callbacks.on_show)(),
-        MENU_ID_ABOUT => (callbacks.on_about)(),
         MENU_ID_QUIT => (callbacks.on_quit)(),
         _ => {}
     }
@@ -610,7 +606,7 @@ impl MenuItemSpec {
 }
 
 fn menu_items_for_visibility(is_visible: bool) -> Vec<MenuItemSpec> {
-    let mut items = Vec::with_capacity(7);
+    let mut items = Vec::with_capacity(5);
     if is_visible {
         items.push(MenuItemSpec {
             id: MENU_ID_MINIMIZE,
@@ -626,16 +622,6 @@ fn menu_items_for_visibility(is_visible: bool) -> Vec<MenuItemSpec> {
     items.push(MenuItemSpec {
         id: MENU_ID_OPEN,
         label: Some("Open Calendar"),
-        is_separator: false,
-    });
-    items.push(MenuItemSpec {
-        id: MENU_ID_SEP_MID,
-        label: None,
-        is_separator: true,
-    });
-    items.push(MenuItemSpec {
-        id: MENU_ID_ABOUT,
-        label: Some("About GnomeGCal"),
         is_separator: false,
     });
     items.push(MenuItemSpec {

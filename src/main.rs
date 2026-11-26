@@ -43,6 +43,7 @@ struct AppController {
     state: RefCell<AppStateFile>,
     webkit_env: RefCell<Option<WebKitEnv>>,
     webview: RefCell<Option<WebView>>,
+    purged_third_party: Cell<bool>,
     intentional_sleep: Cell<bool>,
     needs_network_reload: Cell<bool>,
     sleep_source_id: RefCell<Option<glib::SourceId>>,
@@ -222,6 +223,7 @@ fn initialize_controller(app: &Application) -> Rc<AppController> {
         state: RefCell::new(state),
         webkit_env: RefCell::new(None),
         webview: RefCell::new(None),
+        purged_third_party: Cell::new(false),
         intentional_sleep: Cell::new(false),
         needs_network_reload: Cell::new(false),
         sleep_source_id: RefCell::new(None),
@@ -282,15 +284,6 @@ fn initialize_controller(app: &Application) -> Rc<AppController> {
             Rc::new(move || {
                 if let Some(c) = weak.upgrade() {
                     c.hide_to_tray();
-                }
-            })
-        },
-        on_about: {
-            let weak = Rc::downgrade(&ctrl);
-            Rc::new(move || {
-                if let Some(c) = weak.upgrade() {
-                    c.show_and_focus();
-                    about::show_about_dialog(&c.window);
                 }
             })
         },
@@ -421,6 +414,8 @@ impl AppController {
             self.webview_slot.remove(&wv);
             wv.terminate_web_process();
         }
+        // Drop WebContext and NetworkSession too so background ServiceWorker and Network processes exit cleanly.
+        self.webkit_env.borrow_mut().take();
         self.intentional_sleep.set(false);
     }
 
@@ -440,6 +435,15 @@ impl AppController {
         let data_str = data_dir.to_str().unwrap_or("/tmp/gnome-gcal-data");
         let cache_str = cache_dir.to_str().unwrap_or("/tmp/gnome-gcal-cache");
 
+        // Must be set before creating NetworkSession so WebKit applies it to the NetworkProcess as well.
+        let mut mem_settings = MemoryPressureSettings::new();
+        mem_settings.set_memory_limit(self.cfg.performance.memory_limit_mb);
+        mem_settings.set_strict_threshold(0.75);
+        mem_settings.set_conservative_threshold(0.5);
+        mem_settings.set_kill_threshold(0.0);
+        mem_settings.set_poll_interval(10.0);
+        NetworkSession::set_memory_pressure_settings(&mut mem_settings);
+
         let network_session = NetworkSession::new(Some(data_str), Some(cache_str));
 
         if let Some(cookie_manager) = network_session.cookie_manager() {
@@ -453,18 +457,13 @@ impl AppController {
             }
         }
 
-        purge_non_google_website_data(&network_session);
+        if !self.purged_third_party.replace(true) {
+            purge_non_google_website_data(&network_session);
+        }
 
         let is_dark = adw::StyleManager::default().is_dark();
         let content_manager = UserContentManager::new();
         update_calendar_theme(&content_manager, is_dark);
-
-        let mut mem_settings = MemoryPressureSettings::new();
-        mem_settings.set_memory_limit(self.cfg.performance.memory_limit_mb);
-        mem_settings.set_strict_threshold(0.75);
-        mem_settings.set_conservative_threshold(0.5);
-        mem_settings.set_kill_threshold(0.0);
-        NetworkSession::set_memory_pressure_settings(&mut mem_settings);
 
         let web_context = WebContext::builder()
             .memory_pressure_settings(&mem_settings)
