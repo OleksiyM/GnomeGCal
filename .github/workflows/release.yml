@@ -81,7 +81,7 @@ jobs:
             bash -euxo pipefail -c '
               dnf install -y git cargo rust gtk4-devel libadwaita-devel webkitgtk6.0-devel cairo-devel openssl-devel pkgconf gcc findutils tar gzip
               git config --global --add safe.directory /workspace
-              cargo test --locked || true
+              cargo test --locked
               SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) ./scripts/build-package.sh
               chown -R "$WORKSPACE_UID:$WORKSPACE_GID" target dist
             '

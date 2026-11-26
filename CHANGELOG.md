@@ -5,6 +5,22 @@ All notable changes to **GnomeGCal** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-11-26
+
+### Changed
+- **Zero-Bloat Native D-Bus Tray**: Removed the 5,000+ line vendored `ksni` crate, `tokio`, and `zbus`; implemented `StatusNotifierItem` (with Wayland `ProvideXdgActivationToken` and automatic `StatusNotifierWatcher` reconnect) and `com.canonical.dbusmenu` directly on `gio::DBusConnection` in the single GLib main loop.
+- **Real Deep Sleep & Lazy WebKit Startup**: Added `--hidden` silent autostart (`autostart = true` by default in `[general]`, syncing `~/.config/autostart/io.github.OleksiyM.GnomeGCal.desktop`) which skips WebKit initialization completely until first open. Deep Sleep now destroys the `WebView` widget completely when idle and restores your last active Calendar/Tasks URL on wake.
+- **Untouched Google UI & Live Theme Switching**: Removed brittle Google header-hiding CSS rules so native search and Workspace switchers stay intact across Google updates; kept clean WebKit scrollbars, `color-scheme`, and live `matchMedia` listener dispatching so GNOME Dark/Light switches happen instantly without `reload()`.
+- **Custom About Popup Card**: Replaced the basic About window with a compact, GnomeMeteo-inspired `adw::Dialog` card featuring the bundled app icon, version pill, non-blocking cached GitHub update check, and one-click update command copy.
+- **Clearer Documentation & Strict CI**: Updated `README.md` for v3.0 architecture and enabled strict `cargo test --locked` enforcement in `.github/workflows/release.yml`.
+
+### Added
+- **CLI Controls**: Added `--hidden`, `--toggle` (for GNOME global shortcut binding), `-v`/`--version`, and `-h`/`--help`.
+- **Automatic State & Cache Hygiene**: Silently persists window size, zoom level, and last open view in `~/.local/share/gnome-gcal/state.toml`; clears legacy third-party website data and caps `~/.cache/gnome-gcal/cache` (`cache_limit_mb = 150`) on cold start while preserving Google session cookies.
+- **Optional Web Notifications**: Added `notifications_enabled = false` under `[general]` to optionally bridge Google Calendar notifications into native `gio::Notification`.
+- **Offline & Crash Recovery**: Added a clean `adw::StatusPage` waiting screen via `gio::NetworkMonitor` that auto-reloads when Wi-Fi reconnects after laptop sleep, plus automatic recovery on unexpected `WebProcess` termination.
+- **Unit Test Suite**: Added tests covering `config`, `state`, `url_policy`, `update`, and native D-Bus tray icon/GVariant serialization.
+
 ## [2.0.2] - 2026-11-11
 
 ### Changed

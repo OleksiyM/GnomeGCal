@@ -32,6 +32,7 @@ gcal_uninstall() (
 
     printf '🗑️  Removing application files and desktop integration…\n'
     rm -f -- "$data_dir/applications/$app_id.desktop" \
+        "$config_dir/autostart/$app_id.desktop" \
         "$data_dir/icons/hicolor/scalable/apps/$app_id.svg" \
         "$app_dir/gnome-gcal" "$app_dir/uninstall.sh"
     rm -rf -- "$app_dir/data" "$app_dir/assets" 2>/dev/null || true

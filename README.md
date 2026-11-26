@@ -2,53 +2,55 @@
 
 A lightweight, dedicated desktop hub for **Google Calendar**, **Google Tasks**, and **Google Keep** on **GNOME** (Wayland and X11).
 
-Built with **Rust**, **GTK 4**, **Libadwaita**, and **WebKitGTK 6**.
+Built with **Rust**, **GTK 4**, **Libadwaita**, and **WebKitGTK 6** — zero background runtimes, zero third-party D-Bus/async dependencies, and full control over RAM and disk usage.
 
 ---
 
 ## Highlights
 
-* **All-in-one Google Workspace Hub**: Starts directly in compact **Agenda (Schedule)** view with full access to Day/Week/Month/Year views, **Google Tasks**, and **Google Keep** companion side panel.
-* **Minimalist & Distraction-Free**: Google's bloated headers and search bars are hidden via custom CSS, keeping navigation compact and clean. Syncs live with GNOME's Dark/Light theme.
-* **Dynamic System Tray & Wayland-Native Activation**: Renders today's date dynamically on Cairo and updates automatically at midnight. Supports XDG Activation tokens (`ProvideXdgActivationToken`) for instant, toast-free window restoration on GNOME Wayland.
-* **Real Zero-RAM Deep Sleep**: Solves WebKit's memory greed. When idle in the system tray, it physically terminates the WebKit rendering process, freeing memory down to **0 MB** for WebProcess.
-* **Smart Link Handling**: Calendar and authentication pages stay inside the app; external links (Google Drive, Gemini, docs, web) automatically open in your default desktop browser.
-* **Configurable User-Agent**: User-Agent can be customized in `config.toml` (defaults to modern Chrome for Linux) to ensure seamless compatibility with Google services without outdated browser warnings.
-* **Strictly Private**: Direct HTTPS connection to Google. Login sessions and cookies are stored purely on your local machine (`~/.local/share/gnome-gcal/data/cookies.sqlite`). No analytics, telemetry, or third-party servers.
+* **All-in-One Google Workspace Hub**: Opens directly in **Agenda (Schedule)** view with full access to Day/Week/Month/Year views, **Google Tasks**, and the **Google Keep** side panel — untouched native Google UI with live GNOME Dark/Light theme sync (switches instantly without reloading the page).
+* **Silent Login Autostart (`--hidden`)**: Automatically launches into the GNOME system tray at login (`autostart = true` by default). In `--hidden` mode, WebKit is **not initialized at all** until you first click the tray icon (**0 MB** WebKit RAM on startup).
+* **Real Deep Sleep**: When hidden in the tray past `sleep_timeout_minutes`, GnomeGCal destroys the `WebView` and terminates `WebKitWebProcess`, then cleanly recreates it at your last open Calendar/Tasks URL on next click.
+* **Native GLib Tray & Wayland Focus**: Pure `gio::DBusConnection` StatusNotifierItem + DBusMenu implementation with dynamic Cairo-rendered date badge (automatically flipped at midnight) and Wayland XDG Activation (`ProvideXdgActivationToken`) for instant, toast-free focus.
+* **Automatic State & Cache Hygiene**: Remembers window dimensions, zoom level, and last Calendar/Tasks view in `~/.local/share/gnome-gcal/state.toml` without touching your `config.toml`. Automatically enforces the disk cache limit on cold start while preserving your Google login cookies.
+* **Smart Link Security & Offline Recovery**: Strict `glib::Uri` host checks keep Calendar/Auth inside the app, unwrap `google.com/url?q=...` redirects, and launch external links (Drive, Meet, Docs, web) in your default browser. Shows a clean offline screen after laptop sleep and auto-loads as soon as Wi-Fi reconnects.
 
 ---
 
-## Why Not Just Use a Google Calendar PWA?
+## CLI Options & Global Shortcut
 
-You could. GnomeGCal exists because we wanted the full Google Calendar experience to behave like a real GNOME desktop application — not just a browser tab with its own window.
+```bash
+gnome-gcal [OPTIONS]
+```
 
-Here is what that difference actually means in practice:
-
-1. **Memory (500–800 MB vs 0 MB)**: A browser PWA spawns a fleet of Chromium processes permanently hoarding RAM. When minimized to the tray, GnomeGCal's Deep Sleep physically terminates the idle WebProcess down to **0 MB**.
-2. **Dynamic Tray Widget**: PWAs cannot live as native tray indicators. GnomeGCal renders today’s date dynamically on Cairo and flips it automatically at midnight.
-3. **UI Surgery**: PWAs display Google’s huge search bar and branding headers that eat 30% of compact windows. GnomeGCal cuts the clutter via surgical CSS.
-4. **Smart Links**: Click a Google Drive or external link in a PWA, and it hijacks your compact calendar window. GnomeGCal loads Calendar/Auth locally and cleanly launches external links in your default desktop browser.
-5. **Zero Browser Dependency**: A lightweight isolated Rust binary with its own SQLite session. Closing, crashing, or wiping your main browser never interrupts your calendar.
+* `--hidden` — Start silently in the system tray with zero WebKit memory usage until opened.
+* `--toggle` — Show or hide the window (great for binding to a GNOME Custom Keyboard Shortcut such as `Super+C` with command `~/Applications/GnomeGCal/gnome-gcal --toggle`).
+* `-v`, `--version` — Print version and exit.
+* `-h`, `--help` — Show usage information.
 
 ---
 
 ## Memory & Performance Modes
 
-Google Calendar is an intensive Single Page Application (SPA) that easily consumes 500–700 MB of RAM. **GnomeGCal** provides two battle-tested operating modes:
-
-| Mode | Setting | In-Tray RAM | Restore Time | Best For |
+| Mode | Setting | In-Tray WebProcess | Restore Time | Best For |
 | :--- | :--- | :--- | :--- | :--- |
-| **Mode A** (Fast & Ready) | `deep_sleep_enabled = false` | ~250 MB | **0 ms** (Instant) | Workstations with abundant RAM, frequent checking |
-| **Mode B** (Deep Sleep, *Default*) | `deep_sleep_enabled = true` | **0 MB** (WebProcess killed) | ~1.0 s | Laptops on battery, clean RAM, background idle |
+| **Mode A** (Fast & Ready) | `deep_sleep_enabled = false` | Alive (~250 MB cap) | **0 ms** (Instant) | Workstations with abundant RAM |
+| **Mode B** (Deep Sleep, *Default*) | `deep_sleep_enabled = true` | **0 MB** (`WebView` destroyed) | ~1.0 s | Laptops, clean RAM, background idle |
 
 ### Configuration (`~/.config/gnome-gcal/config.toml`)
 
-The configuration file is automatically created on first launch:
+Created automatically on first launch (existing v2 configs remain compatible):
 
 ```toml
+[general]
+# Automatically start GnomeGCal silently in the tray on GNOME login (--hidden)
+autostart = true
+
+# Forward Google Calendar web notifications to GNOME desktop notifications
+notifications_enabled = false
+
 [performance]
-# true = Mode B (terminate WebProcess in tray, drops to 0 MB RAM)
-# false = Mode A (keep WebProcess alive, instant 0ms restoration)
+# true = destroy idle WebView in tray (Mode B); false = keep alive (Mode A)
 deep_sleep_enabled = true
 
 # Idle minutes in tray before triggering deep sleep
@@ -57,11 +59,22 @@ sleep_timeout_minutes = 5
 # Memory pressure ceiling for WebKit processes in MB
 memory_limit_mb = 256
 
+# Disk cache ceiling for ~/.cache/gnome-gcal/cache in MB (checked on cold start)
+cache_limit_mb = 150
+
 [window]
+# Initial fallback window size (overridden automatically once resized)
 width = 900
 height = 820
+
+# Initial fallback zoom level (overridden automatically by Ctrl++ / Ctrl+- / Ctrl+0)
 zoom_level = 1.0
-theme = "system"          # "system" (follows GNOME Dark/Light toggle), "dark", or "light"
+
+# Color scheme: "system" (follows GNOME Dark/Light toggle), "dark", or "light"
+# Note: In Google Calendar Settings -> Appearance, select "Device default".
+theme = "system"
+
+# Browser User-Agent header for WebKit
 user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
 ```
 
@@ -69,17 +82,13 @@ user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Ge
 
 ## Install / Update
 
-### Automatic Installer (Recommended)
-
-Installs safely into `~/Applications/GnomeGCal` without `sudo` or root permissions:
+Installs per-user into `~/Applications/GnomeGCal` without `sudo`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeGCal/main/install.sh | bash
 ```
 
-The installer downloads the pre-built release archive for your architecture (`x86_64` or `aarch64`), verifies SHA-256 checksums (and Sigstore provenance if GitHub CLI `gh` is installed), and registers the application launcher in GNOME.
-
-### Manual Build from Source
+### Build from Source
 
 Requirements: Rust toolchain, `gtk4`, `libadwaita`, `webkitgtk6.0`, `cairo`.
 
@@ -94,13 +103,13 @@ cargo build --release
 
 ## Uninstall
 
-To remove GnomeGCal while keeping your settings and login session:
+Keep settings and Google login session (removes launcher & autostart entry):
 
 ```bash
 bash ~/Applications/GnomeGCal/uninstall.sh
 ```
 
-To purge all data (including saved Google session cookies and configuration):
+Purge all data (including cookies, cache, state, and configuration):
 
 ```bash
 bash ~/Applications/GnomeGCal/uninstall.sh --purge
@@ -110,15 +119,16 @@ bash ~/Applications/GnomeGCal/uninstall.sh --purge
 
 ## Privacy & Security
 
-* **Direct connection**: Network traffic flows strictly between your local WebKitGTK engine and official `*.google.com` endpoints.
-* **Local data storage**: Authentication tokens, cookies, and local database are persisted strictly in your user directory:
+* **Direct connection**: Traffic goes directly between local WebKitGTK and official `*.google.com` endpoints.
+* **Local storage**:
   * Cookies & session: `~/.local/share/gnome-gcal/data/cookies.sqlite`
-  * Cache: `~/.cache/gnome-gcal/`
+  * Window & view state: `~/.local/share/gnome-gcal/state.toml`
+  * Disk cache: `~/.cache/gnome-gcal/cache` (auto-trimmed per `cache_limit_mb`)
   * Configuration: `~/.config/gnome-gcal/config.toml`
-* No data is sent to the author or any third party.
+  * Autostart entry: `~/.config/autostart/io.github.OleksiyM.GnomeGCal.desktop`
 
 ---
 
 ## Disclaimer
 
-This is a personal, independent open-source project. It is **not** affiliated with, endorsed by, or sponsored by Google LLC or the GNOME Foundation. All Google trademarks, service marks, and logos belong to Google LLC.
+Personal independent open-source project, **not** affiliated with, endorsed by, or sponsored by Google LLC or the GNOME Foundation.
